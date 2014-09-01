@@ -4,15 +4,17 @@ import bs4
 import time
 import random
 import os.path
-
+from os import listdir
+import zipfile
+import xlrd
 
 linkset = set()
 
 
 def download_archive(link):
-    fullLink = 'http://bvb.ro/' + link
-    print 'downloading %s' % fullLink
-    urllib.urlretrieve(fullLink, 'Trades/'+os.path.basename(fullLink)[:-1])
+    full = 'http://bvb.ro/' + link
+    print 'downloading %s' % full
+    urllib.urlretrieve(full, 'Trades/'+os.path.basename(full)[:-1])
 
 
 def download_archives():
@@ -20,15 +22,14 @@ def download_archives():
         files = f.readlines()
     for name in files:
         download_archive(name)
-        time.sleep(random.randint(1, 3))
+        time.sleep(random.randint(1, 3))  # BE NICE :)
 
 
 def add_to_download_set(date):
     u = 'http://bvb.ro/TradingAndStatistics/DailyMarketReport.aspx?d=' + date
     urllib2.urlopen(u)
     soup = bs4.BeautifulSoup(urllib2.urlopen(u).read())
-    table = soup.findChildren('table', {
-        'id': 'ctl00_central_listBVB'})  # soup.find_all('table', {'id': 'ctl00_central_listBVB'})
+    table = soup.findChildren('table', {'id': 'ctl00_central_listBVB'})  # soup.find_all('table', {'id': 'ctl00_central_listBVB'})
     print type(table)
     print len(table)
     links = table[0].findChildren('a')
@@ -48,13 +49,26 @@ def build_download_set():
             f.write(l + '\n')
 
 
-def main():
-    # 12/14/2013
-    #/info/SumareDeTranzactionare/BSE/2013/trades20130308.zip
-    #download_archives('/info/SumareDeTranzactionare/BSE/2013/trades20130308.zip')
-    build_download_set()
-    download_archives()
+def unzip_everything():
+    files = listdir('Trades/')
+    for file in files:
+        with zipfile.ZipFile('Trades/%s' % file) as zf:
+            zf.extractall('TradesUnpacked/')
 
+
+def process_xls(file):
+    book = xlrd.open_workbook(file)
+    print book.nsheets
+    sheet = book.sheet_by_index(1)
+    print sheet.cell(11, 1)
+
+
+def main():
+    #build_download_set()
+    #download_archives()
+    #unzip_everything()
+    #TradesUnpacked/trades20111129.xls
+    process_xls('TradesUnpacked/trades20111129.xls')
 
 
 if __name__ == "__main__":
