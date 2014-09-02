@@ -11,17 +11,19 @@ import xlrd
 linkset = set()
 
 
-def download_archive(link):
+def download_archive(link, folder):
     full = 'http://bvb.ro/' + link
-    print 'downloading %s' % full
-    urllib.urlretrieve(full, 'Trades/'+os.path.basename(full)[:-1])
+    print 'downloading ' + full
+    urllib.urlretrieve(full, '{0}/{1}'.format(folder, os.path.basename(full)[:-1]))
 
 
-def download_archives():
+def download_archives(folder):
     with open('trades_list.txt', 'r') as f:
         files = f.readlines()
+    if not os.path.exists(folder):
+        os.makedirs(folder)
     for name in files:
-        download_archive(name)
+        download_archive(name, folder)
         time.sleep(random.randint(1, 3))  # BE NICE :)
 
 
@@ -49,11 +51,13 @@ def build_download_set():
             f.write(l + '\n')
 
 
-def unzip_everything():
-    files = listdir('Trades/')
-    for file in files:
-        with zipfile.ZipFile('Trades/%s' % file) as zf:
-            zf.extractall('TradesUnpacked/')
+def unzip_everything(in_folder, out_folder):
+    files = listdir(in_folder)
+    if not os.path.exists(out_folder):
+        os.makedirs(out_folder)
+    for f in files:
+        with zipfile.ZipFile('{0}/{1}'.format(in_folder, f)) as zf:
+            zf.extractall(out_folder)
 
 
 def process_xls(file):
@@ -65,8 +69,8 @@ def process_xls(file):
 
 def main():
     #build_download_set()
-    #download_archives()
-    #unzip_everything()
+    #download_archives('Trades')
+    unzip_everything('Trades', 'TradesUnpacked')
     #TradesUnpacked/trades20111129.xls
     process_xls('TradesUnpacked/trades20111129.xls')
 
