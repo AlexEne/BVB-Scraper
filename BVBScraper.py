@@ -60,20 +60,56 @@ def unzip_everything(in_folder, out_folder):
             zf.extractall(out_folder)
 
 
-def process_xls(file):
-    book = xlrd.open_workbook(file)
-    print book.nsheets
+def get_row(sheet, company):
+    for rownum in range(0, sheet.nrows):
+        name = sheet.cell(rownum, 1)
+        if name.value == company:
+            return rownum
+    return -1
+
+
+def process_row(date, sheet, row):
+    company_id = sheet.cell(row, 1).value
+    with open('Organized/{0}.csv'.format(company_id), 'a') as f:
+        f.write(date)
+        for column in range(4, 13):
+            f.write(',{0}'.format(sheet.cell(row, column).value))
+        f.write('\n')
+
+
+def extract_date(filename):
+    #TODO use date or something that makes more sense :)
+    fname = filename.replace('trades', '')
+    fname = fname[:-4]
+    year = fname[:4]
+    month = fname[4:6]
+    day = fname[6:]
+    return '{0}/{1}/{2}'.format(year, month, day)
+
+
+def process_xls(folder, filename, company_id):
+    date = extract_date(filename)
+    book = xlrd.open_workbook(folder+'/'+filename)
     sheet = book.sheet_by_index(1)
-    print sheet.cell(11, 1)
+    row = get_row(sheet, company_id)
+    if row != -1:
+        process_row(date, sheet, row)
+
+
+def extract_data(folder, company_id):
+    files = listdir(folder)
+    for f in files:
+        process_xls(folder, f, company_id)
 
 
 def main():
     #build_download_set()
     #download_archives('Trades')
-    unzip_everything('Trades', 'TradesUnpacked')
+    #unzip_everything('Trades', 'TradesUnpacked')
     #TradesUnpacked/trades20111129.xls
-    process_xls('TradesUnpacked/trades20111129.xls')
-
+    #process_xls('TradesUnpacked/trades20111129.xls')
+    #extract_date('trades20111129.xls')
+    extract_data('TradesUnpacked', 'ALR')
 
 if __name__ == "__main__":
     main()
