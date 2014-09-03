@@ -68,9 +68,9 @@ def get_row(sheet, company):
     return -1
 
 
-def process_row(date, sheet, row):
+def process_row(out_folder, date, sheet, row):
     company_id = sheet.cell(row, 1).value
-    with open('Organized/{0}.csv'.format(company_id), 'a') as f:
+    with open('{0}/{1}.csv'.format(out_folder, company_id), 'a') as f:
         f.write(date)
         for column in range(4, 13):
             f.write(',{0}'.format(sheet.cell(row, column).value))
@@ -87,19 +87,21 @@ def extract_date(filename):
     return '{0}/{1}/{2}'.format(year, month, day)
 
 
-def process_xls(folder, filename, company_id):
+def process_xls(in_folder, out_folder, filename, company_id):
     date = extract_date(filename)
-    book = xlrd.open_workbook(folder+'/'+filename)
+    book = xlrd.open_workbook(in_folder+'/'+filename)
     sheet = book.sheet_by_index(1)
     row = get_row(sheet, company_id)
     if row != -1:
-        process_row(date, sheet, row)
+        process_row(out_folder, date, sheet, row)
 
 
-def extract_data(folder, company_id):
-    files = listdir(folder)
+def extract_data(in_folder, out_folder, company_id):
+    if not os.path.exists(out_folder):
+        os.makedirs(out_folder)
+    files = listdir(in_folder)
     for f in files:
-        process_xls(folder, f, company_id)
+        process_xls(in_folder, out_folder, f, company_id)
 
 
 def main():
@@ -109,7 +111,7 @@ def main():
     #TradesUnpacked/trades20111129.xls
     #process_xls('TradesUnpacked/trades20111129.xls')
     #extract_date('trades20111129.xls')
-    extract_data('TradesUnpacked', 'ALR')
+    extract_data('TradesUnpacked', 'CSV', 'ALR')
 
 if __name__ == "__main__":
     main()
