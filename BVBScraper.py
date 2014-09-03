@@ -72,7 +72,7 @@ def process_row(out_folder, date, sheet, row):
     company_id = sheet.cell(row, 1).value
     with open('{0}/{1}.csv'.format(out_folder, company_id), 'a') as f:
         f.write(date)
-        for column in range(4, 13):
+        for column in range(4, 16):
             f.write(',{0}'.format(sheet.cell(row, column).value))
         f.write('\n')
 
